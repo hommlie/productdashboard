@@ -61,6 +61,43 @@ const ProductOrders = () => {
     }
   };
 
+  const formatAddress = (address) => {
+    if (!address) return 'No address provided';
+    let addr = address;
+
+    if (typeof address === 'string' && address.trim().startsWith('{')) {
+      try {
+        addr = JSON.parse(address);
+      } catch (e) {
+        return address;
+      }
+    }
+
+    if (typeof addr === 'object' && addr !== null) {
+      const parts = [
+        addr.fullName,
+        addr.houseNo,
+        addr.street || addr.line1 || addr.address_line1 || addr.address,
+        addr.landmark,
+        addr.city,
+        addr.state,
+        addr.location,
+        addr.zip || addr.pincode || addr.postalCode || addr.postal_code,
+        addr.country,
+        addr.mobile ? `Ph: ${addr.mobile}` : null,
+        addr.email
+      ].filter(part => part && String(part).trim() !== '');
+
+      if (parts.length > 0) return parts.join(', ');
+
+      return Object.values(addr)
+        .filter(val => typeof val === 'string' || typeof val === 'number')
+        .join(', ');
+    }
+
+    return String(address);
+  };
+
   const filteredOrders = orders.filter(order =>
     order.customer_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     order.id.toString().includes(searchTerm)
@@ -133,7 +170,7 @@ const ProductOrders = () => {
                           </div>
                           <div>
                             <p className="font-medium text-gray-900">{order.customer_name || 'Unknown'}</p>
-                            <p className="text-xs text-gray-500">{order.customer_email}</p>
+                            <p className="text-xs text-gray-500">{order.customer_phone}</p>
                           </div>
                         </div>
                       </td>
@@ -222,22 +259,27 @@ const ProductOrders = () => {
                     <p className="font-medium text-gray-900">{selectedOrder.customer_name || 'N/A'}</p>
                   </div>
                   <div>
+                    <p className="text-gray-500">Contact Number</p>
+                    <p className="font-medium text-gray-900">{selectedOrder.customer_phone || ((() => {
+                      if (selectedOrder.address && typeof selectedOrder.address === 'string' && selectedOrder.address.startsWith('{')) {
+                        try { return JSON.parse(selectedOrder.address).mobile; } catch { return ''; }
+                      }
+                      return '';
+                    })()) || 'N/A'}</p>
+                  </div>
+                  <div>
                     <p className="text-gray-500">Email</p>
-                    <p className="font-medium text-gray-900">{selectedOrder.customer_email || 'N/A'}</p>
+                    <p className="font-medium text-gray-900">{(selectedOrder.customer_email || (() => {
+                      if (selectedOrder.address && typeof selectedOrder.address === 'string' && selectedOrder.address.startsWith('{')) {
+                        try { return JSON.parse(selectedOrder.address).email; } catch { return ''; }
+                      }
+                      return '';
+                    })()) || 'N/A'}</p>
                   </div>
                   <div className="col-span-1 md:col-span-2">
                     <p className="text-gray-500">Delivery Address</p>
                     <p className="font-medium text-gray-900 mt-1 bg-white p-3 rounded-lg border border-gray-200">
-                      {selectedOrder.address ? (
-                        typeof selectedOrder.address === 'string' && selectedOrder.address.startsWith('{')
-                          ? (() => {
-                            try {
-                              const addr = JSON.parse(selectedOrder.address);
-                              return `${addr.street || ''}, ${addr.city || ''}, ${addr.state || ''} - ${addr.zip || ''}`;
-                            } catch { return selectedOrder.address; }
-                          })()
-                          : selectedOrder.address
-                      ) : 'No address provided'}
+                      {formatAddress(selectedOrder.address)}
                     </p>
                   </div>
                 </div>
