@@ -9,6 +9,7 @@ const subcategoryRoutes = require('./routes/subcategoryRoutes'); // ✅ ADD
 const productRoutes = require('./routes/productRoutes'); // ✅ ADD
 const authRoutes = require('./routes/authRoutes'); // ✅ ADD
 const orderRoutes = require('./routes/orderRoutes'); // ✅ ADD
+const dashboardRoutes = require('./routes/dashboardRoutes'); // ✅ ADD
 
 
 const app = express();
@@ -43,6 +44,7 @@ app.use('/api', subcategoryRoutes); // ✅ ADD
 app.use('/api', productRoutes); // ✅ ADD
 app.use('/api', authRoutes); // ✅ ADD
 app.use('/api', orderRoutes); // ✅ ADD
+app.use('/api', dashboardRoutes); // ✅ ADD
 
 
 const PORT = process.env.PORT || 5000;
