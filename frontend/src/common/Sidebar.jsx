@@ -1,17 +1,26 @@
 import { NavLink, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import {
+  LayoutDashboard,
+  Tag,
+  Box,
+  ShoppingCart,
+  Users,
+  Settings,
+  LogOut
+} from "lucide-react";
 
 const menuItems = [
-  { name: "Dashboard", icon: "📊", to: "/" },
-  { name: "Category", icon: "🏷️", to: "/category" },
-  { name: "Sub Category", icon: "🏷️", to: "/subcategory" },
-  { name: "Products", icon: "📦", to: "/products" },
-  { name: "Product Orders", icon: "🛒", to: "/product-orders" },
-  { name: "Customers", icon: "👥", to: "/customers" },
-  { name: "Settings", icon: "⚙️", to: "/settings" },
+  { name: "Dashboard", icon: LayoutDashboard, to: "/" },
+  { name: "Category", icon: Tag, to: "/category" },
+  { name: "Sub Category", icon: Tag, to: "/subcategory" },
+  { name: "Products", icon: Box, to: "/products" },
+  { name: "Product Orders", icon: ShoppingCart, to: "/product-orders" },
+  { name: "Customers", icon: Users, to: "/customers" },
+  { name: "Settings", icon: Settings, to: "/settings" },
 ];
 
-const Sidebar = ({ isOpen }) => {
+const Sidebar = ({ isOpen, toggleSidebar }) => {
   const { logout } = useAuth();
   const navigate = useNavigate();
 
@@ -21,45 +30,76 @@ const Sidebar = ({ isOpen }) => {
   };
 
   return (
-    <aside
-      className={`fixed top-16 left-0 bg-gradient-to-b from-green-50 via-green-100 to-green-300
-      border-r transition-all duration-300 hidden md:flex flex-col
-      ${isOpen ? "w-64" : "w-20"}
-      h-[calc(100vh-8rem)]`}  // ⬅️ header (4rem) + footer (4rem)
-    >
-      {/* Menu */}
-      <ul className="flex-1 p-3 space-y-2 overflow-y-auto">
-        {menuItems.map((item, index) => (
-          <li key={index}>
+    <>
+      {/* Mobile Overlay */}
+      {isOpen && (
+        <div
+          className="fixed inset-0 bg-black/50 z-40 md:hidden transition-opacity duration-300"
+          onClick={toggleSidebar}
+        />
+      )}
+
+      <aside
+        className={`fixed top-0 left-0 z-40 h-full bg-white border-r border-gray-100 
+        transition-all duration-300 ease-in-out flex flex-col shadow-xl md:shadow-none
+        ${isOpen ? "translate-x-0 w-64" : "-translate-x-full md:translate-x-0 md:w-20"}
+        pt-16`}
+      >
+        {/* Menu Items */}
+        <div className="flex-1 px-4 py-6 space-y-2 overflow-y-auto custom-scrollbar">
+          {menuItems.map((item, index) => (
             <NavLink
+              key={index}
               to={item.to}
+              onClick={() => {
+                if (window.innerWidth < 768) toggleSidebar();
+              }}
               className={({ isActive }) =>
-                `flex items-center gap-3 px-3 py-3 rounded-lg transition-colors
+                `flex items-center gap-3 px-3 py-3 rounded-xl transition-all duration-200 group
                 ${isActive
-                  ? "bg-indigo-100 text-indigo-700 font-semibold"
-                  : "text-gray-700 hover:bg-indigo-50 hover:text-indigo-600"
+                  ? "bg-indigo-600 text-white shadow-lg shadow-indigo-200"
+                  : "text-gray-500 hover:bg-indigo-50 hover:text-indigo-600"
                 }`
               }
             >
-              <span className="text-xl">{item.icon}</span>
-              {isOpen && <span>{item.name}</span>}
-            </NavLink>
-          </li>
-        ))}
-      </ul>
+              {({ isActive }) => (
+                <>
+                  <item.icon size={22} strokeWidth={isActive ? 2.5 : 2} />
+                  <span className={`font-medium transition-opacity duration-300 ${!isOpen && "md:hidden"}`}>
+                    {item.name}
+                  </span>
 
-      {/* Logout (STICKY BOTTOM) */}
-      <div className="p-3 border-t border-green-300 bg-green-100">
-        <button
-          onClick={handleLogout}
-          className="w-full flex items-center gap-3 px-3 py-3 rounded-lg
-          text-white bg-red-500 hover:bg-red-600 transition"
-        >
-          <span className="text-xl">🔓</span>
-          {isOpen && <span>Logout</span>}
-        </button>
-      </div>
-    </aside>
+                  {!isOpen && (
+                    <div className="absolute left-full ml-6 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity hidden md:block whitespace-nowrap z-[60]">
+                      {item.name}
+                    </div>
+                  )}
+                </>
+              )}
+            </NavLink>
+          ))}
+        </div>
+
+        {/* Logout Section */}
+        <div className="p-4 border-t border-gray-50">
+          <button
+            onClick={handleLogout}
+            className="w-full flex items-center gap-3 px-3 py-3 rounded-xl text-rose-500 hover:bg-rose-50 transition-all duration-200 group relative"
+          >
+            <LogOut size={22} strokeWidth={2} />
+            <span className={`font-medium transition-opacity duration-300 ${!isOpen && "md:hidden"}`}>
+              Logout
+            </span>
+
+            {!isOpen && (
+              <div className="absolute left-full ml-6 px-2 py-1 bg-gray-900 text-white text-xs rounded opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity hidden md:block whitespace-nowrap z-[60]">
+                Logout
+              </div>
+            )}
+          </button>
+        </div>
+      </aside>
+    </>
   );
 };
 
