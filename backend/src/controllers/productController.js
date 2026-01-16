@@ -47,6 +47,7 @@ exports.addProduct = async (req, res) => {
             is_return,
             return_days,
             is_recomanded,
+            payment_mode,
             rating,
             total_reviews,
             faqs,
@@ -91,6 +92,7 @@ exports.addProduct = async (req, res) => {
             is_return: Number(is_return) || 0,
             return_days: return_days ? Number(return_days) : null,
             is_recomanded: Number(is_recomanded) || 0,
+            payment_mode: Number(payment_mode) || 0,
             rating: Number(rating) || 0,
             total_reviews: Number(total_reviews) || 0,
             faqs: ensureJson(faqs),
@@ -150,7 +152,7 @@ exports.updateProductData = async (req, res) => {
         // Ensure numeric values for numeric/boolean fields
         const numericFields = [
             'product_status', 'status', 'stock', 'sort_order',
-            'shipping_cost', 'is_return', 'return_days', 'is_recomanded',
+            'shipping_cost', 'is_return', 'return_days', 'is_recomanded', 'payment_mode',
             'rating', 'total_reviews', 'subcategory_id', 'product_price', 'product_discount_price', 'tax_percentage'
         ];
 

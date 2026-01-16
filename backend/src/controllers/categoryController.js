@@ -26,7 +26,7 @@ exports.updateCategory = async (req, res) => {
 exports.getCategories = async (req, res) => {
   try {
     const categories = await getAllCategories();
-    res.json({ success: true, categories });
+    res.json({ success: true, data: categories });
   } catch (error) {
     console.error("Get categories error:", error);
     res.status(500).json({ success: false, message: "Server error" });

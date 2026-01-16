@@ -5,6 +5,7 @@ import {
   Tag,
   Box,
   ShoppingCart,
+  PlusCircle,
   Users,
   Settings,
   LogOut
@@ -15,6 +16,7 @@ const menuItems = [
   { name: "Category", icon: Tag, to: "/category" },
   { name: "Sub Category", icon: Tag, to: "/subcategory" },
   { name: "Products", icon: Box, to: "/products" },
+  { name: "Add Order", icon: PlusCircle, to: "/add-order" },
   { name: "Product Orders", icon: ShoppingCart, to: "/product-orders" },
   { name: "Customers", icon: Users, to: "/customers" },
   { name: "Settings", icon: Settings, to: "/settings" },

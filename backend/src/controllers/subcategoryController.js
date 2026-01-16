@@ -3,8 +3,20 @@ const {
   createSubcategory,
   updateSubcategory,
   getSubcategoryById,
+  getSubcategoriesByCategory,
   deleteSubcategoryById,
 } = require("../models/subcategoryModel");
+
+exports.getSubcategoriesByCat = async (req, res) => {
+  try {
+    const { categoryId } = req.params;
+    const data = await getSubcategoriesByCategory(categoryId);
+    res.json({ success: true, data });
+  } catch (error) {
+    console.error("Get subcategories by cat error:", error);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+};
 
 exports.getSubcategories = async (req, res) => {
   try {

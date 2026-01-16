@@ -44,6 +44,7 @@ exports.createProduct = async (data) => {
         is_return,
         return_days,
         is_recomanded,
+        payment_mode,
         rating,
         total_reviews,
         faqs,
@@ -57,9 +58,9 @@ exports.createProduct = async (data) => {
     user_id, subcategory_id, product_name, product_image, product_desc, 
     contains, product_price, product_discount_price, tax_percentage, tax_type,
     estimated_time, stock, views, product_status, status, sort_order,
-    shipping_cost, is_return, return_days, is_recomanded, rating,
+    shipping_cost, is_return, return_days, is_recomanded, payment_mode, rating,
     total_reviews, faqs, faqs_for_mobile, location, includes, excludes
-  ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+  ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
 
     const params = [
         user_id,
@@ -82,6 +83,7 @@ exports.createProduct = async (data) => {
         is_return || 0,
         return_days || null,
         is_recomanded || 0,
+        payment_mode || 0,
         rating || 0.0,
         total_reviews || 0,
         faqs || null,
@@ -119,6 +121,7 @@ exports.updateProduct = async (id, data) => {
         is_return: 'is_return',
         return_days: 'return_days',
         is_recomanded: 'is_recomanded',
+        payment_mode: 'payment_mode',
         rating: 'rating',
         total_reviews: 'total_reviews',
         faqs: 'faqs',

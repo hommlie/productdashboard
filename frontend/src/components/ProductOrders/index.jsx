@@ -65,6 +65,7 @@ const ProductOrders = () => {
       case 'PENDING': return { color: 'bg-amber-100 text-amber-700 border-amber-200', icon: <Clock size={14} /> };
       case 'CANCELLED': return { color: 'bg-rose-100 text-rose-700 border-rose-200', icon: <XCircle size={14} /> };
       case 'SHIPPED': return { color: 'bg-sky-100 text-sky-700 border-sky-200', icon: <Truck size={14} /> };
+      case 'DELIVERED': return { color: 'bg-purple-100 text-purple-700 border-purple-200', icon: <CheckCircle size={14} /> };
       default: return { color: 'bg-gray-100 text-gray-700 border-gray-200', icon: <Package size={14} /> };
     }
   };
@@ -191,10 +192,44 @@ const ProductOrders = () => {
                           {new Date(order.created_at).toLocaleDateString()}
                         </td>
                         <td className="px-6 py-4 text-center">
-                          <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold uppercase tracking-wider border ${status.color}`}>
-                            {status.icon}
-                            {order.order_status || 'PENDING'}
-                          </span>
+                          <select
+                            value={order.order_status || 'PENDING'}
+                            onChange={async (e) => {
+                              const newStatus = e.target.value;
+                              try {
+                                const response = await axios.put(`/api/orders/${order.id}/status`, {
+                                  order_status: newStatus
+                                });
+                                if (response.data.success) {
+                                  // Update local state
+                                  setOrders(orders.map(o =>
+                                    o.id === order.id ? { ...o, order_status: newStatus } : o
+                                  ));
+                                }
+                              } catch (error) {
+                                console.error('Error updating status:', error);
+                                alert('Failed to update order status');
+                              }
+                            }}
+                            className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-bold uppercase tracking-wider border cursor-pointer focus:ring-2 focus:ring-offset-2 focus:outline-none ${order.order_status === 'CONFIRMED' || order.order_status === 'PAID'
+                              ? 'bg-emerald-100 text-emerald-700 border-emerald-200 focus:ring-emerald-500'
+                              : order.order_status === 'PENDING'
+                                ? 'bg-amber-100 text-amber-700 border-amber-200 focus:ring-amber-500'
+                                : order.order_status === 'CANCELLED'
+                                  ? 'bg-rose-100 text-rose-700 border-rose-200 focus:ring-rose-500'
+                                  : order.order_status === 'SHIPPED'
+                                    ? 'bg-sky-100 text-sky-700 border-sky-200 focus:ring-sky-500'
+                                    : order.order_status === 'DELIVERED'
+                                      ? 'bg-purple-100 text-purple-700 border-purple-200 focus:ring-purple-500'
+                                      : 'bg-gray-100 text-gray-700 border-gray-200 focus:ring-gray-500'
+                              }`}
+                          >
+                            <option value="PENDING">PENDING</option>
+                            <option value="CONFIRMED">CONFIRMED</option>
+                            <option value="SHIPPED">SHIPPED</option>
+                            <option value="DELIVERED">DELIVERED</option>
+                            <option value="CANCELLED">CANCELLED</option>
+                          </select>
                         </td>
                         <td className="px-6 py-4 font-bold text-gray-900 leading-none">
                           ₹{Number(order.total_amount).toLocaleString()}

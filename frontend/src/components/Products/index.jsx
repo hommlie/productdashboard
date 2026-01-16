@@ -63,6 +63,7 @@ const Products = () => {
     location: "",
     includes: "",
     excludes: "",
+    paymentMode: 0,
   });
 
   const fetchSubcategories = async () => {
@@ -132,6 +133,7 @@ const Products = () => {
         location: prod.location || "",
         includes: prod.includes || "",
         excludes: prod.excludes || "",
+        paymentMode: prod.payment_mode || 0,
       });
     } else {
       setEditingId(null);
@@ -160,6 +162,7 @@ const Products = () => {
         location: "",
         includes: "",
         excludes: "",
+        paymentMode: 0,
       });
     }
     setStep(0);
@@ -214,6 +217,7 @@ const Products = () => {
       fd.append("location", form.location);
       fd.append("includes", form.includes);
       fd.append("excludes", form.excludes);
+      fd.append("payment_mode", form.paymentMode);
 
       const url = editingId ? `/api/products/${editingId}` : "/api/products";
       const method = editingId ? "PUT" : "POST";
@@ -609,6 +613,26 @@ const Products = () => {
                       >
                         <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${form.isRecommended ? "translate-x-6" : "translate-x-1"}`} />
                       </button>
+                    </div>
+
+                    <div className="space-y-3">
+                      <p className="font-bold text-gray-900">Payment Settings</p>
+                      <div className="grid grid-cols-2 gap-4">
+                        <button
+                          type="button"
+                          onClick={() => setForm({ ...form, paymentMode: 0 })}
+                          className={`flex items-center justify-center p-4 rounded-xl border-2 transition-all ${form.paymentMode === 0 ? "bg-indigo-50 border-indigo-600 text-indigo-700 font-bold" : "bg-white border-gray-100 text-gray-400 hover:border-gray-200"}`}
+                        >
+                          Cash on Delivery
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setForm({ ...form, paymentMode: 1 })}
+                          className={`flex items-center justify-center p-4 rounded-xl border-2 transition-all ${form.paymentMode === 1 ? "bg-indigo-50 border-indigo-600 text-indigo-700 font-bold" : "bg-white border-gray-100 text-gray-400 hover:border-gray-200"}`}
+                        >
+                          Online Payment
+                        </button>
+                      </div>
                     </div>
                   </div>
                 )}

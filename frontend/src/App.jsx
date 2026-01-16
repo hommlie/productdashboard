@@ -5,6 +5,7 @@ import Products from "./components/Products";
 import Category from "./components/Category";
 import SubCategory from "./components/SubCategory";
 import ProductOrders from "./components/ProductOrders";
+import AddOrder from "./components/AddOrder";
 import Customers from "./components/Customers";
 import Settings from "./components/Settings";
 import Login from "./components/Login";
@@ -26,6 +27,7 @@ const App = () => {
           <Route path="/products" element={<PrivateRoute><Products /></PrivateRoute>} />
           <Route path="/category" element={<PrivateRoute><Category /></PrivateRoute>} />
           <Route path="/subcategory" element={<PrivateRoute><SubCategory /></PrivateRoute>} />
+          <Route path="/add-order" element={<PrivateRoute><AddOrder /></PrivateRoute>} />
           <Route path="/product-orders" element={<PrivateRoute><ProductOrders /></PrivateRoute>} />
           <Route path="/customers" element={<PrivateRoute><Customers /></PrivateRoute>} />
           <Route path="/settings" element={<PrivateRoute><Settings /></PrivateRoute>} />

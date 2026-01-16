@@ -6,10 +6,13 @@ const path = require('path');
 const { pool } = require('./db');
 const categoryRoutes = require('./routes/categoryRoutes'); // ✅ ADD
 const subcategoryRoutes = require('./routes/subcategoryRoutes'); // ✅ ADD
-const productRoutes = require('./routes/productRoutes'); // ✅ ADD
-const authRoutes = require('./routes/authRoutes'); // ✅ ADD
-const orderRoutes = require('./routes/orderRoutes'); // ✅ ADD
-const dashboardRoutes = require('./routes/dashboardRoutes'); // ✅ ADD
+const productRoutes = require('./routes/productRoutes');
+const authRoutes = require('./routes/authRoutes');
+const orderRoutes = require('./routes/orderRoutes');
+const dashboardRoutes = require('./routes/dashboardRoutes');
+const settingsRoutes = require('./routes/settingsRoutes');
+const customerRoutes = require('./routes/customerRoutes');
+const paymentRoutes = require('./routes/paymentRoutes');
 
 
 const app = express();
@@ -43,8 +46,11 @@ app.use('/api', categoryRoutes);
 app.use('/api', subcategoryRoutes); // ✅ ADD
 app.use('/api', productRoutes); // ✅ ADD
 app.use('/api', authRoutes); // ✅ ADD
-app.use('/api', orderRoutes); // ✅ ADD
-app.use('/api', dashboardRoutes); // ✅ ADD
+app.use('/api', orderRoutes);
+app.use('/api', dashboardRoutes);
+app.use('/api', customerRoutes);
+app.use('/api', paymentRoutes);
+app.use('/api/settings', settingsRoutes);
 
 
 const PORT = process.env.PORT || 5000;

@@ -85,6 +85,12 @@ exports.getSubcategoryById = async (id) => {
   return rows[0];
 };
 
+exports.getSubcategoriesByCategory = async (categoryId) => {
+  const sql = 'SELECT * FROM subcategories WHERE category_id = ? AND status = 1';
+  const [rows] = await pool.query(sql, [categoryId]);
+  return rows;
+};
+
 exports.deleteSubcategoryById = async (id) => {
   const sql = 'DELETE FROM subcategories WHERE id=?';
   const [result] = await pool.query(sql, [id]);

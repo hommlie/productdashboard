@@ -44,7 +44,7 @@ const Category = () => {
     try {
       const res = await fetch("/api/categories");
       const data = await res.json();
-      const catArray = data.categories || data || [];
+      const catArray = data.categories || data.data || data || [];
       setCategories(Array.isArray(catArray) ? catArray : []);
     } catch (err) {
       console.error("Failed to fetch categories", err);

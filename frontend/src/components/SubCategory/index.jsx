@@ -46,7 +46,7 @@ const SubCategory = () => {
     try {
       const res = await fetch("/api/categories");
       const data = await res.json();
-      const catArray = data.categories || data || [];
+      const catArray = data.categories || data.data || data || [];
       setCategories(Array.isArray(catArray) ? catArray : []);
     } catch (err) {
       console.error("Failed to fetch categories", err);
@@ -59,7 +59,7 @@ const SubCategory = () => {
     try {
       const res = await fetch("/api/subcategories");
       const data = await res.json();
-      const subArray = data.subcategories || data || [];
+      const subArray = data.subcategories || data.data || data || [];
       setSubcategories(Array.isArray(subArray) ? subArray : []);
     } catch (err) {
       console.error("Failed to fetch subcategories", err);
