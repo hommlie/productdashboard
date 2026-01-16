@@ -39,21 +39,37 @@ exports.addProduct = async (req, res) => {
             product_price,
             product_discount_price,
             tax_percentage,
+            tax_type,
             estimated_time,
-            sort_order
+            stock,
+            sort_order,
+            shipping_cost,
+            is_return,
+            return_days,
+            is_recomanded,
+            rating,
+            total_reviews,
+            faqs,
+            faqs_for_mobile,
+            location,
+            includes,
+            excludes
         } = req.body;
 
-        const image = req.file ? req.file.filename : null;
+        const images = req.files ? req.files.map(f => f.filename) : [];
+        const image = JSON.stringify(images);
         const user_id = 1; // Temporary user_id
 
-        // Ensure 'contains' is valid JSON to satisfy DB constraint CHECK (json_valid(`contains`))
-        let containsJson = contains;
-        try {
-            JSON.parse(contains);
-        } catch (e) {
-            // If not valid JSON, stringify it
-            containsJson = JSON.stringify(contains || "");
-        }
+        // Ensure JSON fields are valid
+        const ensureJson = (val) => {
+            if (!val) return JSON.stringify([]);
+            try {
+                JSON.parse(val);
+                return val;
+            } catch (e) {
+                return JSON.stringify(val);
+            }
+        };
 
         const productId = await createProduct({
             user_id,
@@ -61,14 +77,27 @@ exports.addProduct = async (req, res) => {
             product_name,
             product_image: image,
             product_desc,
-            contains: containsJson,
+            contains: ensureJson(contains),
             product_price,
             product_discount_price,
             tax_percentage,
+            tax_type,
             estimated_time,
+            stock: Number(stock) || 0,
             product_status: 1, // Default active
             status: 1, // Default not deleted
-            sort_order
+            sort_order,
+            shipping_cost: Number(shipping_cost) || 0,
+            is_return: Number(is_return) || 0,
+            return_days: return_days ? Number(return_days) : null,
+            is_recomanded: Number(is_recomanded) || 0,
+            rating: Number(rating) || 0,
+            total_reviews: Number(total_reviews) || 0,
+            faqs: ensureJson(faqs),
+            faqs_for_mobile: ensureJson(faqs_for_mobile),
+            location,
+            includes,
+            excludes
         });
 
         res.status(201).json({
@@ -87,24 +116,49 @@ exports.updateProductData = async (req, res) => {
         const { id } = req.params;
         const updateData = { ...req.body };
 
-        if (req.file) {
-            updateData.product_image = req.file.filename;
-        }
-
-        // Ensure 'contains' is valid JSON if provided
-        if (updateData.contains !== undefined) {
-            try {
-                JSON.parse(updateData.contains);
-            } catch (e) {
-                updateData.contains = JSON.stringify(updateData.contains || "");
+        if (req.files && req.files.length > 0) {
+            const newImages = req.files.map(f => f.filename);
+            let existingImages = [];
+            if (req.body.existing_images) {
+                try {
+                    existingImages = JSON.parse(req.body.existing_images);
+                } catch (e) {
+                    existingImages = [];
+                }
             }
+            updateData.product_image = JSON.stringify([...existingImages, ...newImages]);
+        } else if (req.body.existing_images) {
+            // If no new files but existing_images loop changes (e.g. deletion)
+            try {
+                const existingImages = JSON.parse(req.body.existing_images);
+                updateData.product_image = JSON.stringify(existingImages);
+            } catch (e) { }
         }
 
-        // Remove status fields if they are sent as strings "true"/"false" from frontend
-        // although with JSON.stringify it should be numbers 0/1.
-        // Ensure numeric values for status fields
-        if (updateData.product_status !== undefined) updateData.product_status = Number(updateData.product_status);
-        if (updateData.status !== undefined) updateData.status = Number(updateData.status);
+        // Ensure JSON fields are valid if provided
+        const jsonFields = ['contains', 'faqs', 'faqs_for_mobile'];
+        jsonFields.forEach(field => {
+            if (updateData[field] !== undefined) {
+                try {
+                    JSON.parse(updateData[field]);
+                } catch (e) {
+                    updateData[field] = JSON.stringify(updateData[field] || "");
+                }
+            }
+        });
+
+        // Ensure numeric values for numeric/boolean fields
+        const numericFields = [
+            'product_status', 'status', 'stock', 'sort_order',
+            'shipping_cost', 'is_return', 'return_days', 'is_recomanded',
+            'rating', 'total_reviews', 'subcategory_id', 'product_price', 'product_discount_price', 'tax_percentage'
+        ];
+
+        numericFields.forEach(field => {
+            if (updateData[field] !== undefined) {
+                updateData[field] = updateData[field] === "" || updateData[field] === null ? null : Number(updateData[field]);
+            }
+        });
 
         await updateProduct(id, updateData);
         res.json({ success: true, message: "Product updated successfully" });

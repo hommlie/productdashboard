@@ -2,13 +2,14 @@ const dashboardModel = require('../models/dashboardModel');
 
 async function getDashboardData(req, res) {
     try {
-        const stats = await dashboardModel.getStats();
+        const { period } = req.query;
+        const stats = await dashboardModel.getStats(period);
         const recentOrders = await dashboardModel.getRecentOrders(5);
 
         res.json({
             success: true,
             data: {
-                stats,
+                stats: stats,
                 recentOrders
             }
         });
@@ -18,4 +19,18 @@ async function getDashboardData(req, res) {
     }
 }
 
-module.exports = { getDashboardData };
+async function getDashboardDetails(req, res) {
+    try {
+        const { type } = req.query;
+        if (!type) {
+            return res.status(400).json({ success: false, message: 'Type is required' });
+        }
+        const details = await dashboardModel.getDetailsByType(type);
+        res.json({ success: true, data: details });
+    } catch (err) {
+        console.error('Error fetching dashboard details:', err);
+        res.status(500).json({ success: false, message: 'Server error' });
+    }
+}
+
+module.exports = { getDashboardData, getDashboardDetails };

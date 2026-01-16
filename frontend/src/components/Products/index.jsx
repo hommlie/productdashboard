@@ -20,9 +20,13 @@ const steps = [
   { key: "name", label: "Product Name", placeholder: "Eg: Organic Tomato" },
   { key: "image", label: "Product Image" },
   { key: "desc", label: "Product Description", placeholder: "Enter product details..." },
-  { key: "contains", label: "Contains / Features", placeholder: "Eg: Vitamins, Minerals..." },
-  { key: "pricing", label: "Pricing", placeholder: "Price and Discount" },
-  { key: "meta", label: "Other Details", placeholder: "Tax and Delivery Time" },
+  { key: "contains", label: "Features & Extra", placeholder: "Features, Includes, Excludes" },
+  { key: "pricing", label: "Pricing & Shipping", placeholder: "Price, Discount, Shipping" },
+  { key: "meta", label: "Other Details", placeholder: "Tax, Location, Time" },
+  { key: "policy", label: "Store Policy", placeholder: "Returns & Recommendations" },
+  { key: "ratings", label: "Social Proof", placeholder: "Rating & Reviews" },
+  { key: "faqs", label: "FAQs", placeholder: "User Questions" },
+  { key: "stock", label: "Inventory", placeholder: "Stock Quantity" },
   { key: "order", label: "Sort Order", placeholder: "9999" },
 ];
 
@@ -37,15 +41,28 @@ const Products = () => {
   const [form, setForm] = useState({
     subcategory: "",
     name: "",
-    image: null,
-    imagePreview: null,
+    existingImages: [],
+    newImages: [],
     desc: "",
     contains: "",
     price: "",
     discountPrice: "",
     tax: "0",
+    taxType: "",
     estimatedTime: "",
+    stock: "0",
     sortOrder: "9999",
+    shippingCost: "0",
+    isReturn: 0,
+    returnDays: "0",
+    isRecommended: 0,
+    rating: "0",
+    totalReviews: "0",
+    faqs: "",
+    faqsMobile: "",
+    location: "",
+    includes: "",
+    excludes: "",
   });
 
   const fetchSubcategories = async () => {
@@ -83,33 +100,66 @@ const Products = () => {
   const openModal = (prod = null) => {
     if (prod) {
       setEditingId(prod.id);
+      let existing = [];
+      try {
+        existing = JSON.parse(prod.product_image);
+        if (!Array.isArray(existing)) existing = prod.product_image ? [prod.product_image] : [];
+      } catch (e) {
+        existing = prod.product_image ? [prod.product_image] : [];
+      }
       setForm({
         subcategory: prod.subcategory_name,
         name: prod.product_name,
-        image: null,
-        imagePreview: prod.product_image ? `/uploads/${prod.product_image}` : null,
+        existingImages: existing,
+        newImages: [],
         desc: prod.product_desc || "",
         contains: prod.contains || "",
         price: prod.product_price || "",
         discountPrice: prod.product_discount_price || "",
         tax: prod.tax_percentage || "0",
+        taxType: prod.tax_type || "",
         estimatedTime: prod.estimated_time || "",
+        stock: prod.stock || "0",
         sortOrder: prod.sort_order || "9999",
+        shippingCost: prod.shipping_cost || "0",
+        isReturn: prod.is_return || 0,
+        returnDays: prod.return_days || "0",
+        isRecommended: prod.is_recomanded || 0,
+        rating: prod.rating || "0",
+        totalReviews: prod.total_reviews || "0",
+        faqs: prod.faqs || "",
+        faqsMobile: prod.faqs_for_mobile || "",
+        location: prod.location || "",
+        includes: prod.includes || "",
+        excludes: prod.excludes || "",
       });
     } else {
       setEditingId(null);
       setForm({
         subcategory: "",
         name: "",
-        image: null,
-        imagePreview: null,
+        existingImages: [],
+        newImages: [],
         desc: "",
         contains: "",
         price: "",
         discountPrice: "",
         tax: "0",
+        taxType: "",
         estimatedTime: "",
+        stock: "0",
         sortOrder: "9999",
+        shippingCost: "0",
+        isReturn: 0,
+        returnDays: "0",
+        isRecommended: 0,
+        rating: "0",
+        totalReviews: "0",
+        faqs: "",
+        faqsMobile: "",
+        location: "",
+        includes: "",
+        excludes: "",
       });
     }
     setStep(0);
@@ -135,14 +185,35 @@ const Products = () => {
       const fd = new FormData();
       fd.append("subcategory_id", subcategory_id);
       fd.append("product_name", form.name);
-      if (form.image) fd.append("product_image", form.image);
+
+      // Append existing images JSON
+      fd.append("existing_images", JSON.stringify(form.existingImages));
+
+      // Append new images
+      form.newImages.forEach(file => {
+        fd.append("product_images", file);
+      });
+
       fd.append("product_desc", form.desc);
       fd.append("contains", form.contains);
       fd.append("product_price", form.price);
       fd.append("product_discount_price", form.discountPrice);
       fd.append("tax_percentage", form.tax);
+      fd.append("tax_type", form.taxType);
       fd.append("estimated_time", form.estimatedTime);
+      fd.append("stock", form.stock);
       fd.append("sort_order", form.sortOrder);
+      fd.append("shipping_cost", form.shippingCost);
+      fd.append("is_return", form.isReturn);
+      fd.append("return_days", form.returnDays);
+      fd.append("is_recomanded", form.isRecommended);
+      fd.append("rating", form.rating);
+      fd.append("total_reviews", form.totalReviews);
+      fd.append("faqs", form.faqs);
+      fd.append("faqs_for_mobile", form.faqsMobile);
+      fd.append("location", form.location);
+      fd.append("includes", form.includes);
+      fd.append("excludes", form.excludes);
 
       const url = editingId ? `/api/products/${editingId}` : "/api/products";
       const method = editingId ? "PUT" : "POST";
@@ -243,18 +314,29 @@ const Products = () => {
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-4">
                         <div className="shrink-0">
-                          {p.product_image ? (
-                            <img
-                              src={`/uploads/${p.product_image}`}
-                              alt={p.product_name}
-                              className="w-12 h-12 object-cover rounded-lg border border-gray-100"
-                              onError={(e) => { e.target.style.display = 'none'; }}
-                            />
-                          ) : (
-                            <div className="w-12 h-12 bg-gray-50 rounded-lg flex items-center justify-center text-gray-400 border border-gray-100">
-                              <ImageIcon size={20} />
-                            </div>
-                          )}
+                          {(() => {
+                            let img = null;
+                            try {
+                              const parsed = JSON.parse(p.product_image);
+                              img = Array.isArray(parsed) ? parsed[0] : parsed;
+                            } catch (e) { img = p.product_image; }
+
+                            if (img) {
+                              return (
+                                <img
+                                  src={`/uploads/${img}`}
+                                  alt={p.product_name}
+                                  className="w-12 h-12 object-cover rounded-lg border border-gray-100"
+                                  onError={(e) => { e.target.style.display = 'none'; }}
+                                />
+                              );
+                            }
+                            return (
+                              <div className="w-12 h-12 bg-gray-50 rounded-lg flex items-center justify-center text-gray-400 border border-gray-100">
+                                <ImageIcon size={20} />
+                              </div>
+                            );
+                          })()}
                         </div>
                         <div className="min-w-0">
                           <p className="font-semibold text-gray-900 truncate">{p.product_name}</p>
@@ -272,6 +354,7 @@ const Products = () => {
                       <div className="flex flex-col items-center gap-1 text-[11px] font-semibold text-gray-500">
                         <p><span className="text-gray-400 uppercase mr-1">Tax:</span> {p.tax_percentage}%</p>
                         <p><span className="text-gray-400 uppercase mr-1">Time:</span> {p.estimated_time || "N/A"}</p>
+                        <p><span className="text-gray-400 uppercase mr-1">Stock:</span> <span className={p.stock <= 0 ? "text-rose-600 font-bold" : "text-emerald-600 font-bold"}>{p.stock || 0}</span></p>
                         <p><span className="text-gray-400 uppercase mr-1">Rank:</span> {p.sort_order}</p>
                       </div>
                     </td>
@@ -358,28 +441,49 @@ const Products = () => {
                 )}
 
                 {step === 2 && (
-                  <div className="space-y-3">
-                    <label className="text-xs font-bold text-gray-400 uppercase tracking-wider uppercase">Display Image</label>
-                    <div className="relative aspect-square w-48 mx-auto flex items-center justify-center border-2 border-dashed border-gray-200 rounded-2xl hover:bg-gray-50 transition-colors cursor-pointer overflow-hidden p-2">
-                      <input
-                        type="file"
-                        accept="image/*"
-                        hidden
-                        id="image-upload"
-                        onChange={(e) => {
-                          const file = e.target.files[0];
-                          if (file) setForm({ ...form, image: file, imagePreview: URL.createObjectURL(file) });
-                        }}
-                      />
-                      <label htmlFor="image-upload" className="w-full h-full flex flex-col items-center justify-center cursor-pointer">
-                        {form.imagePreview ? (
-                          <img src={form.imagePreview} className="absolute inset-0 w-full h-full object-cover" />
-                        ) : (
-                          <div className="text-center">
-                            <ImageIcon size={32} className="text-gray-400 mx-auto mb-2" />
-                            <span className="text-xs font-bold text-gray-400 uppercase">Upload Image</span>
-                          </div>
-                        )}
+                  <div className="space-y-4">
+                    <label className="text-xs font-bold text-gray-400 uppercase tracking-wider uppercase">Product Images</label>
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                      {/* Existing Images */}
+                      {form.existingImages.map((img, idx) => (
+                        <div key={`exist-${idx}`} className="relative aspect-square rounded-xl overflow-hidden border border-gray-200 group">
+                          <img src={`/uploads/${img}`} className="w-full h-full object-cover" />
+                          <button
+                            onClick={() => setForm(prev => ({ ...prev, existingImages: prev.existingImages.filter((_, i) => i !== idx) }))}
+                            className="absolute top-2 right-2 p-1.5 bg-white/90 text-rose-600 rounded-full opacity-0 group-hover:opacity-100 transition-opacity shadow-sm"
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        </div>
+                      ))}
+
+                      {/* New Images */}
+                      {form.newImages.map((file, idx) => (
+                        <div key={`new-${idx}`} className="relative aspect-square rounded-xl overflow-hidden border border-gray-200 group">
+                          <img src={URL.createObjectURL(file)} className="w-full h-full object-cover" />
+                          <button
+                            onClick={() => setForm(prev => ({ ...prev, newImages: prev.newImages.filter((_, i) => i !== idx) }))}
+                            className="absolute top-2 right-2 p-1.5 bg-white/90 text-rose-600 rounded-full opacity-0 group-hover:opacity-100 transition-opacity shadow-sm"
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        </div>
+                      ))}
+
+                      {/* Add Button */}
+                      <label className="relative aspect-square flex flex-col items-center justify-center border-2 border-dashed border-gray-200 rounded-xl hover:bg-gray-50 transition-colors cursor-pointer text-gray-400 hover:text-indigo-600">
+                        <input
+                          type="file"
+                          accept="image/*"
+                          multiple
+                          hidden
+                          onChange={(e) => {
+                            const files = Array.from(e.target.files);
+                            if (files.length > 0) setForm(prev => ({ ...prev, newImages: [...prev.newImages, ...files] }));
+                          }}
+                        />
+                        <Plus size={24} className="mb-2" />
+                        <span className="text-xs font-bold uppercase">Add Images</span>
                       </label>
                     </div>
                   </div>
@@ -400,46 +504,168 @@ const Products = () => {
                 )}
 
                 {step === 4 && (
-                  <div className="space-y-3">
-                    <label className="text-xs font-bold text-gray-400 uppercase tracking-wider uppercase">Product Features</label>
-                    <textarea
-                      rows={5}
-                      autoFocus
-                      value={form.contains}
-                      onChange={(e) => setForm({ ...form, contains: e.target.value })}
-                      placeholder="List key features or ingredients..."
-                      className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-4 focus:ring-indigo-50 focus:border-indigo-500 outline-none transition-all font-semibold resize-none"
-                    />
+                  <div className="space-y-6">
+                    <div>
+                      <label className="text-xs font-bold text-gray-400 uppercase tracking-wider uppercase mb-2 block">Product Features</label>
+                      <textarea
+                        rows={2}
+                        value={form.contains}
+                        onChange={(e) => setForm({ ...form, contains: e.target.value })}
+                        placeholder="List key features..."
+                        className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-4 focus:ring-indigo-50 focus:border-indigo-500 outline-none transition-all font-semibold resize-none"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-xs font-bold text-gray-400 uppercase tracking-wider uppercase mb-2 block">What's Included</label>
+                      <textarea
+                        rows={2}
+                        value={form.includes}
+                        onChange={(e) => setForm({ ...form, includes: e.target.value })}
+                        placeholder="Items included in the package..."
+                        className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-4 focus:ring-indigo-50 focus:border-indigo-500 outline-none transition-all font-semibold resize-none"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-xs font-bold text-gray-400 uppercase tracking-wider uppercase mb-2 block">What's Excluded</label>
+                      <textarea
+                        rows={2}
+                        value={form.excludes}
+                        onChange={(e) => setForm({ ...form, excludes: e.target.value })}
+                        placeholder="Items NOT included..."
+                        className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-4 focus:ring-indigo-50 focus:border-indigo-500 outline-none transition-all font-semibold resize-none"
+                      />
+                    </div>
                   </div>
                 )}
 
                 {step === 5 && (
-                  <div className="space-y-6">
+                  <div className="grid grid-cols-1 gap-6">
                     <div>
-                      <label className="text-xs font-bold text-gray-400 uppercase tracking-wider uppercase mb-2 block">Regular Price (₹)</label>
+                      <label className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2 block">Regular Price (₹)</label>
                       <input type="number" placeholder="0.00" value={form.price} onChange={(e) => setForm({ ...form, price: e.target.value })} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-4 focus:ring-indigo-50 focus:border-indigo-500 outline-none transition-all font-bold" />
                     </div>
                     <div>
-                      <label className="text-xs font-bold text-indigo-700 uppercase tracking-wider uppercase mb-2 block">Discounted Price (₹)</label>
+                      <label className="text-xs font-bold text-indigo-700 uppercase tracking-wider mb-2 block">Discounted Price (₹)</label>
                       <input type="number" placeholder="0.00" value={form.discountPrice} onChange={(e) => setForm({ ...form, discountPrice: e.target.value })} className="w-full px-4 py-3 bg-indigo-50/30 border border-indigo-100 focus:ring-4 focus:ring-indigo-50 focus:border-indigo-500 outline-none transition-all font-bold text-indigo-700" />
+                    </div>
+                    <div>
+                      <label className="text-xs font-bold text-orange-600 uppercase tracking-wider mb-2 block">Shipping Cost (₹)</label>
+                      <input type="number" placeholder="0.00" value={form.shippingCost} onChange={(e) => setForm({ ...form, shippingCost: e.target.value })} className="w-full px-4 py-3 bg-orange-50/30 border border-orange-100 focus:ring-4 focus:ring-orange-50 focus:border-orange-500 outline-none transition-all font-bold text-orange-600" />
                     </div>
                   </div>
                 )}
 
                 {step === 6 && (
-                  <div className="space-y-6">
-                    <div>
-                      <label className="text-xs font-bold text-gray-400 uppercase tracking-wider uppercase mb-2 block">Tax Percentage (%)</label>
-                      <input type="number" placeholder="18" value={form.tax} onChange={(e) => setForm({ ...form, tax: e.target.value })} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-4 focus:ring-indigo-50 focus:border-indigo-500 outline-none transition-all font-bold" />
+                  <div className="grid grid-cols-1 gap-6">
+                    <div className="grid grid-cols-2 gap-4">
+                      <div>
+                        <label className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2 block">Tax (%)</label>
+                        <input type="number" placeholder="18" value={form.tax} onChange={(e) => setForm({ ...form, tax: e.target.value })} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl font-bold" />
+                      </div>
+                      <div>
+                        <label className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2 block">Tax Type</label>
+                        <input type="text" placeholder="GST/VAT" value={form.taxType} onChange={(e) => setForm({ ...form, taxType: e.target.value })} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl font-bold" />
+                      </div>
                     </div>
                     <div>
-                      <label className="text-xs font-bold text-gray-400 uppercase tracking-wider uppercase mb-2 block">Delivery Estimate</label>
-                      <input type="text" placeholder="e.g. 3-5 Business Days" value={form.estimatedTime} onChange={(e) => setForm({ ...form, estimatedTime: e.target.value })} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-4 focus:ring-indigo-50 focus:border-indigo-500 outline-none transition-all font-bold" />
+                      <label className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2 block">Location / City</label>
+                      <input type="text" placeholder="e.g. Bangalore" value={form.location} onChange={(e) => setForm({ ...form, location: e.target.value })} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl font-bold" />
+                    </div>
+                    <div>
+                      <label className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2 block">Delivery Estimate</label>
+                      <input type="text" placeholder="e.g. 3-5 Business Days" value={form.estimatedTime} onChange={(e) => setForm({ ...form, estimatedTime: e.target.value })} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl font-bold" />
                     </div>
                   </div>
                 )}
 
                 {step === 7 && (
+                  <div className="space-y-6">
+                    <div className="flex items-center justify-between p-4 bg-gray-50 rounded-2xl border border-gray-100">
+                      <div>
+                        <p className="font-bold text-gray-900">Return Policy</p>
+                        <p className="text-xs text-gray-500">Allow customers to return this product</p>
+                      </div>
+                      <button
+                        onClick={() => setForm({ ...form, isReturn: form.isReturn ? 0 : 1 })}
+                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${form.isReturn ? "bg-indigo-600" : "bg-gray-200"}`}
+                      >
+                        <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${form.isReturn ? "translate-x-6" : "translate-x-1"}`} />
+                      </button>
+                    </div>
+                    {form.isReturn === 1 && (
+                      <div className="animate-in slide-in-from-top-2">
+                        <label className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2 block">Return window (Days)</label>
+                        <input type="number" value={form.returnDays} onChange={(e) => setForm({ ...form, returnDays: e.target.value })} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl font-bold" />
+                      </div>
+                    )}
+                    <div className="flex items-center justify-between p-4 bg-indigo-50/50 rounded-2xl border border-indigo-100">
+                      <div>
+                        <p className="font-bold text-indigo-900">Recommended</p>
+                        <p className="text-xs text-indigo-600">Feature this in "Recommended" section</p>
+                      </div>
+                      <button
+                        onClick={() => setForm({ ...form, isRecommended: form.isRecommended ? 0 : 1 })}
+                        className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${form.isRecommended ? "bg-indigo-600" : "bg-gray-200"}`}
+                      >
+                        <span className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${form.isRecommended ? "translate-x-6" : "translate-x-1"}`} />
+                      </button>
+                    </div>
+                  </div>
+                )}
+
+                {step === 8 && (
+                  <div className="grid grid-cols-1 gap-6">
+                    <div>
+                      <label className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2 block">Average Rating (e.g. 4.5)</label>
+                      <input type="number" step="0.1" value={form.rating} onChange={(e) => setForm({ ...form, rating: e.target.value })} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl font-bold text-2xl text-center" />
+                    </div>
+                    <div>
+                      <label className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2 block">Total Reviews Count</label>
+                      <input type="number" value={form.totalReviews} onChange={(e) => setForm({ ...form, totalReviews: e.target.value })} className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl font-bold text-2xl text-center" />
+                    </div>
+                  </div>
+                )}
+
+                {step === 9 && (
+                  <div className="space-y-6">
+                    <div>
+                      <label className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2 block">General FAQs (JSON Format)</label>
+                      <textarea
+                        rows={5}
+                        value={form.faqs}
+                        onChange={(e) => setForm({ ...form, faqs: e.target.value })}
+                        placeholder='[{"q":"Question?","a":"Answer"}]'
+                        className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl font-semibold resize-none text-xs"
+                      />
+                    </div>
+                    <div>
+                      <label className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2 block">Mobile Specific FAQs (JSON Format)</label>
+                      <textarea
+                        rows={3}
+                        value={form.faqsMobile}
+                        onChange={(e) => setForm({ ...form, faqsMobile: e.target.value })}
+                        placeholder='Same as above for mobile'
+                        className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl font-semibold resize-none text-xs"
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {step === 10 && (
+                  <div className="space-y-4">
+                    <label className="text-xs font-bold text-gray-400 uppercase tracking-wider block uppercase">Inventory Stock</label>
+                    <input
+                      type="number"
+                      placeholder="0"
+                      value={form.stock}
+                      onChange={(e) => setForm({ ...form, stock: e.target.value })}
+                      onKeyDown={(e) => e.key === "Enter" && next()}
+                      className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:ring-4 focus:ring-indigo-50 focus:border-indigo-500 outline-none transition-all font-bold text-indigo-600 text-3xl text-center"
+                    />
+                  </div>
+                )}
+
+                {step === 11 && (
                   <div className="space-y-4">
                     <label className="text-xs font-bold text-gray-400 uppercase tracking-wider uppercase block">Display Priority</label>
                     <input
@@ -459,7 +685,7 @@ const Products = () => {
               </div>
             </div>
 
-            <div className="p-8 bg-gray-50/50 flex items-center justify-between border-t border-gray-100">
+            <div className="p-8 bg-gray-50/50 flex items-center justify-between border-t border-gray-100 mt-auto">
               <div className="flex items-center gap-4">
                 {step > 0 && (
                   <button onClick={back} className="p-3 bg-white border border-gray-200 text-gray-600 hover:text-indigo-600 rounded-xl transition-all shadow-sm">
